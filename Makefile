@@ -64,7 +64,6 @@ endif
 # the relevant environment variables (service-account key file).
 ifdef GOOGLE_CREDENTIALS
 	DOCKER_GCP_FLAGS += -e GOOGLE_CREDENTIALS
-	DOCKER_GCP_FLAGS += -e TF_VAR_BILLING_ACCOUNT
 endif
 
 # If GITHUB_OWNER is defined, we are likely running inside a GitHub provider
@@ -96,6 +95,7 @@ test/unit-tests: DOCKER_FLAGS += ${DOCKER_SSH_FLAGS}
 test/unit-tests: DOCKER_FLAGS += ${DOCKER_GITHUB_FLAGS}
 test/unit-tests: DOCKER_FLAGS += ${DOCKER_AWS_FLAGS}
 test/unit-tests: DOCKER_FLAGS += ${DOCKER_GCP_FLAGS}
+test/unit-tests: DOCKER_FLAGS += $(shell env | grep ^TF_VAR_ | cut -d = -f 1 | xargs -i printf ' -e {}')
 test/unit-tests: DOCKER_FLAGS += -e TF_DATA_DIR=.terratest
 test/unit-tests: TEST ?= "TestUnit"
 test/unit-tests:
