@@ -37,7 +37,7 @@ section {
   title   = "terraform-google-billing-budget"
   toc     = true
   content = <<-END
-    A [Terraform] module to manage [Google Billing Budgets](https://cloud.google.com/billing/docs/how-to/budgets) on [Google Cloud Services (GCP)](https://cloud.google.com).
+    A [Terraform] module to manage [Google Billing Budgets](https://cloud.google.com/billing/docs/how-to/budgets) on [Google Cloud Platform (GCP)](https://cloud.google.com).
 
     A budget enables you to track your actual Google Cloud spend against your
     planned spend. After you've set a budget amount, you set budget alert
@@ -68,6 +68,20 @@ section {
       ```hcl
       module "terraform-google-billing-budget" {
         source = "git@github.com:mineiros-io/terraform-google-billing-budget.git?ref=v0.0.1"
+
+        display_name    = "example-alert"
+        billing_account = "xxxxxxxx-xxxx-xxxxxxx"
+        amount          = 1000
+        currency_code   = "EUR"
+        treshold_rules = [
+          {
+            threshold_percent = 1.0
+          },
+          {
+            threshold_percent = 1.0
+            spend_basis       = "FORECASTED_SPEND"
+          }
+        ]
       }
       ```
     END
@@ -85,68 +99,191 @@ section {
       section {
         title = "Main Resource Configuration"
 
-        # please add main resource variables here
+        variable "billing_account" {
+          required    = true
+          type        = string
+          description = <<-END
+            ID of the billing account to set a budget on. 
+          END
+        }
 
-        # remove examples
+        variable "amount" {
+          required    = true
+          type        = number
+          description = <<-END
+            A specified amount to use as the budget.
+          END
+        }
 
-        ### Example of a required variable
-        #
-        # variable "name" {
-        #   required    = true
-        #   type        = string
-        #   description = <<-END
-        #     The name of the resource
-        #   END
-        #   default     = "resource-name"
-        # }
+        variable "threshold_rules" {
+          type        = any
+          readme_type = "list(threshold_rules)"
+          readme_example = <<-END
+            treshold_rules = [
+              {
+                threshold_percent = 1.0
+              },
+              {
+                threshold_percent = 1.0
+                spend_basis       = "FORECASTED_SPEND"
+              }
+            ]
+          END
 
-        ### Example of an optional variable
-        #
-        # variable "name" {
-        #   type        = string
-        #   description = <<-END
-        #     The name of the resource
-        #   END
-        #   default     = "optional-resource-name"
-        # }
+          attribute "threshold_percent" {
+            required    = true
+            type        = number
+            description = <<-END
+              Send an alert when this threshold is exceeded. This is a 1.0-based percentage, so 0.5 = 50%. Must be >= 0.
+            END
+          }
 
-        ### Example of an object
-        #
-        # variable "user" {
-        #   type        = any
-        #   readme_type = "object(user)"
-        #   default     = {}
-        #   readme_example = <<-END
-        #     user = {
-        #       name        = "marius"
-        #       description = "The guy from Berlin."
-        #     }
-        #   END
+          attribute "spend_basis" {
+            type        = string
+            description = <<-END
+              The type of basis used to determine if spend has passed the threshold. Default value is `CURRENT_SPEND`. Possible values are `CURRENT_SPEND` and `FORECASTED_SPEND`.
+            END
+         }
+       }
 
-        #   attribute "name" {
-        #     required    = true
-        #     type        = string
-        #     description = <<-END
-        #       The name of the user
-        #     END
-        #   }
+        variable "currency_code" {
+          type        = string
+          description = <<-END
+            The 3-letter currency code defined in ISO 4217. If specified, it must match the currency of the billing account. For a list of currency codes, please see https://en.wikipedia.org/wiki/ISO_4217
+          END
+          default = null
+        }
 
-        #   attribute "description" {
-        #      type        = string
-        #      description = <<-END
-        #        A description describng the user in more detail
-        #      END
-        #      default     = ""
-        #    }
-        #  }
+        variable "display_name" {
+          type        = string
+          description = <<-END
+            The name of the budget that will be displayed in the GCP console. Must be <= 60 chars.
+          END
+          default     = null
+        }
+
+
+        variable "budget_filter" {
+          type        = any
+          description = <<-END
+            Filters that define which resources are used to compute the actual spend against the budget.
+          END
+          readme_type = "object(budget_filter)"
+          default     = null
+          readme_example = <<-END
+            user = {
+              projects               = ["projects/xxx"]
+              credit_types_treatment = "INCLUDE_SPECIFIED_CREDITS"
+              credit_types           = "COMMITTED_USAGE_DISCOUNT"
+              services               = ["services/example-service"]
+              subaccounts            = ["billingAccounts/xxx"]
+              labels                 = {
+                Environment = "Dev"
+              }
+            }
+          END
+
+          attribute "projects" {
+            type        = set(string)
+            description = <<-END
+              A set of projects of the form `projects/{project_number}`, specifying that usage from only this set of projects should be included in the budget. If omitted, the report will include all usage for the billing account, regardless of which project the usage occurred on.
+            END
+            default     = null
+          }
+
+          attribute "credit_types_treatment" {
+            type        = string
+            description = <<-END
+              Specifies how credits should be treated when determining spend for threshold calculations. Possible values are `INCLUDE_ALL_CREDITS`, `EXCLUDE_ALL_CREDITS`, and `INCLUDE_SPECIFIED_CREDITS`.
+            END
+            default     = "INCLUDE_ALL_CREDITS"
+          }
+
+          attribute "credit_types" {
+            type        = string
+            description = <<-END
+              If `credit_types_treatment` is set to `INCLUDE_SPECIFIED_CREDITS`, this is a list of credit types to be subtracted from gross cost to determine the spend for threshold calculations. See [a list of acceptable credit type values](https://cloud.google.com/billing/docs/how-to/export-data-bigquery-tables#credits-type)
+            END
+            default     = null
+          }
+
+          attribute "services" {
+            type        = set(string)
+            description = <<-END
+              A set of services of the form `services/{service_id}`, specifying that usage from only this set of services should be included in the budget. If omitted, the report will include usage for all the services. For a list of available services please see: https://cloud.google.com/billing/v1/how-tos/catalog-api.
+            END
+            default     = null
+          }
+
+          attribute "subaccounts" {
+            type        = set(string)
+            description = <<-END
+              A set of subaccounts of the form `billingAccounts/{account_id}`, specifying that usage from only this set of subaccounts should be included in the budget. If a subaccount is set to the name of the parent account, usage from the parent account will be included. If the field is omitted, the report will include usage from the parent account and all subaccounts, if they exist.
+            END
+            default     = null
+          }
+
+          attribute "labels" {
+            type        = map(string)
+            description = <<-END
+              A single label and value pair specifying that usage from only this set of labeled resources should be included in the budget.
+            END
+            default     = null
+          }
+        }
+
+        variable "notifications" {
+          type        = any
+          description = <<-END
+            Defines notifications that are sent on every update to the billing account's spend, regardless of the thresholds defined using threshold rules.
+          END
+
+          readme_type = "object(notifications)"
+          default     = null
+          readme_example = <<-END
+            notifications = {
+              pubsub_topic                     = "alert-notification-topic"
+              monitoring_notification_channels = [
+                "projects/sample-project/example-alert-notification",
+              ]
+              disable_default_iam_recipients   = true
+            }
+          END
+
+          attribute "pubsub_topic" {
+            type        = string
+            description = <<-END
+              The name of the Cloud Pub/Sub topic where budget related messages will be published, in the form `projects/{project_id}/topics/{topic_id}`. Updates are sent at regular intervals to the topic.
+            END
+            default     = null
+         }
+
+          attribute "schema_version" {
+            type        = string
+            description = <<-END
+              The schema version of the notification. It represents the JSON schema as defined in https://cloud.google.com/billing/docs/how-to/budgets#notification_format.
+            END
+            default     = "1.0"
+          }
+
+          attribute "monitoring_notification_channels" {
+            type        = set(string)
+            description = <<-END
+              The full resource name of a monitoring notification channel in the form `projects/{project_id}/notificationChannels/{channel_id}`. A maximum of 5 channels are allowed.
+            END
+            default     = null
+          }
+
+          attribute "disable_default_iam_recipients" {
+            type        = bool
+            description = <<-END
+              When set to true, disables default notifications sent when a threshold is exceeded. Default recipients are those with Billing Account Administrators and Billing Account Users IAM roles for the target account.
+            END
+            default     = null
+          }
+        }
       }
-
-      # section {
-      #   title = "Extended Resource Configuration"
-      #
-      #   # please uncomment and add extended resource variables here (rsource not the main resource)
-      # }
-
+ 
       section {
         title = "Module Configuration"
 
@@ -156,6 +293,57 @@ section {
             Specifies whether resources in the module will be created.
           END
           default     = true
+        }
+
+        variable "module_timeouts" {
+          type        = any
+          readme_type = "object(google_billing_budget)"
+          description = <<-END
+            How long certain operations (per resource type) are allowed to take before being considered to have failed.
+          END
+          default = {}
+          readme_example = <<-END
+            module_timeouts = {
+              google_billing_budget = {
+                create = "4m"
+                update = "4m"
+                delete = "4m"
+              }
+            }
+          END
+
+          attribute "google_billing_budget" {
+            type        = any
+            readme_type = "object(timeouts)"
+            description = <<-END
+              Timeout for the `google_billing_budget` resource.
+            END
+            default =  null
+
+            attribute "create" {
+              type        = string
+              description = <<-END
+                Timeout for `create` operations.
+              END
+              default = null
+            }
+
+            attribute "update" {
+              type        = string
+              description = <<-END
+                Timeout for `update` operations.
+              END
+              default = null
+            }
+
+            attribute "delete" {
+              type        = string
+              description = <<-END
+                Timeout for `delete` operations.
+              END
+              default = null
+            }
+          }
         }
 
         variable "module_depends_on" {
@@ -198,7 +386,7 @@ section {
     section {
       title   = "Terraform GCP Provider Documentation"
       content = <<-END
-        -https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget 
+        - https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget 
       END
     }
   }

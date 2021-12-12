@@ -8,7 +8,7 @@
 
 # terraform-google-billing-budget
 
-A [Terraform] module to manage [Google Billing Budgets](https://cloud.google.com/billing/docs/how-to/budgets) on [Google Cloud Services (GCP)](https://cloud.google.com).
+A [Terraform] module to manage [Google Billing Budgets](https://cloud.google.com/billing/docs/how-to/budgets) on [Google Cloud Platform (GCP)](https://cloud.google.com).
 
 A budget enables you to track your actual Google Cloud spend against your
 planned spend. After you've set a budget amount, you set budget alert
@@ -53,6 +53,20 @@ Most common usage of the module:
 ```hcl
 module "terraform-google-billing-budget" {
   source = "git@github.com:mineiros-io/terraform-google-billing-budget.git?ref=v0.0.1"
+
+  display_name    = "example-alert"
+  billing_account = "xxxxxxxx-xxxx-xxxxxxx"
+  amount          = 1000
+  currency_code   = "EUR"
+  treshold_rules = [
+    {
+      threshold_percent = 1.0
+    },
+    {
+      threshold_percent = 1.0
+      spend_basis       = "FORECASTED_SPEND"
+    }
+  ]
 }
 ```
 
@@ -64,6 +78,155 @@ See [variables.tf] and [examples/] for details and use-cases.
 
 #### Main Resource Configuration
 
+- [**`billing_account`**](#var-billing_account): *(**Required** `string`)*<a name="var-billing_account"></a>
+
+  ID of the billing account to set a budget on.
+
+- [**`amount`**](#var-amount): *(**Required** `number`)*<a name="var-amount"></a>
+
+  A specified amount to use as the budget.
+
+- [**`threshold_rules`**](#var-threshold_rules): *(Optional `list(threshold_rules)`)*<a name="var-threshold_rules"></a>
+
+  Example:
+
+  ```hcl
+  treshold_rules = [
+    {
+      threshold_percent = 1.0
+    },
+    {
+      threshold_percent = 1.0
+      spend_basis       = "FORECASTED_SPEND"
+    }
+  ]
+  ```
+
+  The object accepts the following attributes:
+
+  - [**`threshold_percent`**](#attr-threshold_percent-1): *(**Required** `number`)*<a name="attr-threshold_percent-1"></a>
+
+    Send an alert when this threshold is exceeded. This is a 1.0-based percentage, so 0.5 = 50%. Must be >= 0.
+
+  - [**`spend_basis`**](#attr-spend_basis-1): *(Optional `string`)*<a name="attr-spend_basis-1"></a>
+
+    The type of basis used to determine if spend has passed the threshold. Default value is `CURRENT_SPEND`. Possible values are `CURRENT_SPEND` and `FORECASTED_SPEND`.
+
+- [**`currency_code`**](#var-currency_code): *(Optional `string`)*<a name="var-currency_code"></a>
+
+  The 3-letter currency code defined in ISO 4217. If specified, it must match the currency of the billing account. For a list of currency codes, please see https://en.wikipedia.org/wiki/ISO_4217
+
+  Default is `null`.
+
+- [**`display_name`**](#var-display_name): *(Optional `string`)*<a name="var-display_name"></a>
+
+  The name of the budget that will be displayed in the GCP console. Must be <= 60 chars.
+
+  Default is `null`.
+
+- [**`budget_filter`**](#var-budget_filter): *(Optional `object(budget_filter)`)*<a name="var-budget_filter"></a>
+
+  Filters that define which resources are used to compute the actual spend against the budget.
+
+  Default is `null`.
+
+  Example:
+
+  ```hcl
+  user = {
+    projects               = ["projects/xxx"]
+    credit_types_treatment = "INCLUDE_SPECIFIED_CREDITS"
+    credit_types           = "COMMITTED_USAGE_DISCOUNT"
+    services               = ["services/example-service"]
+    subaccounts            = ["billingAccounts/xxx"]
+    labels                 = {
+      Environment = "Dev"
+    }
+  }
+  ```
+
+  The object accepts the following attributes:
+
+  - [**`projects`**](#attr-projects-1): *(Optional `set(string)`)*<a name="attr-projects-1"></a>
+
+    A set of projects of the form `projects/{project_number}`, specifying that usage from only this set of projects should be included in the budget. If omitted, the report will include all usage for the billing account, regardless of which project the usage occurred on.
+
+    Default is `null`.
+
+  - [**`credit_types_treatment`**](#attr-credit_types_treatment-1): *(Optional `string`)*<a name="attr-credit_types_treatment-1"></a>
+
+    Specifies how credits should be treated when determining spend for threshold calculations. Possible values are `INCLUDE_ALL_CREDITS`, `EXCLUDE_ALL_CREDITS`, and `INCLUDE_SPECIFIED_CREDITS`.
+
+    Default is `"INCLUDE_ALL_CREDITS"`.
+
+  - [**`credit_types`**](#attr-credit_types-1): *(Optional `string`)*<a name="attr-credit_types-1"></a>
+
+    If `credit_types_treatment` is set to `INCLUDE_SPECIFIED_CREDITS`, this is a list of credit types to be subtracted from gross cost to determine the spend for threshold calculations. See [a list of acceptable credit type values](https://cloud.google.com/billing/docs/how-to/export-data-bigquery-tables#credits-type)
+
+    Default is `null`.
+
+  - [**`services`**](#attr-services-1): *(Optional `set(string)`)*<a name="attr-services-1"></a>
+
+    A set of services of the form `services/{service_id}`, specifying that usage from only this set of services should be included in the budget. If omitted, the report will include usage for all the services. For a list of available services please see: https://cloud.google.com/billing/v1/how-tos/catalog-api.
+
+    Default is `null`.
+
+  - [**`subaccounts`**](#attr-subaccounts-1): *(Optional `set(string)`)*<a name="attr-subaccounts-1"></a>
+
+    A set of subaccounts of the form `billingAccounts/{account_id}`, specifying that usage from only this set of subaccounts should be included in the budget. If a subaccount is set to the name of the parent account, usage from the parent account will be included. If the field is omitted, the report will include usage from the parent account and all subaccounts, if they exist.
+
+    Default is `null`.
+
+  - [**`labels`**](#attr-labels-1): *(Optional `map(string)`)*<a name="attr-labels-1"></a>
+
+    A single label and value pair specifying that usage from only this set of labeled resources should be included in the budget.
+
+    Default is `null`.
+
+- [**`notifications`**](#var-notifications): *(Optional `object(notifications)`)*<a name="var-notifications"></a>
+
+  Defines notifications that are sent on every update to the billing account's spend, regardless of the thresholds defined using threshold rules.
+
+  Default is `null`.
+
+  Example:
+
+  ```hcl
+  notifications = {
+    pubsub_topic                     = "alert-notification-topic"
+    monitoring_notification_channels = [
+      "projects/sample-project/example-alert-notification",
+    ]
+    disable_default_iam_recipients   = true
+  }
+  ```
+
+  The object accepts the following attributes:
+
+  - [**`pubsub_topic`**](#attr-pubsub_topic-1): *(Optional `string`)*<a name="attr-pubsub_topic-1"></a>
+
+    The name of the Cloud Pub/Sub topic where budget related messages will be published, in the form `projects/{project_id}/topics/{topic_id}`. Updates are sent at regular intervals to the topic.
+
+    Default is `null`.
+
+  - [**`schema_version`**](#attr-schema_version-1): *(Optional `string`)*<a name="attr-schema_version-1"></a>
+
+    The schema version of the notification. It represents the JSON schema as defined in https://cloud.google.com/billing/docs/how-to/budgets#notification_format.
+
+    Default is `"1.0"`.
+
+  - [**`monitoring_notification_channels`**](#attr-monitoring_notification_channels-1): *(Optional `set(string)`)*<a name="attr-monitoring_notification_channels-1"></a>
+
+    The full resource name of a monitoring notification channel in the form `projects/{project_id}/notificationChannels/{channel_id}`. A maximum of 5 channels are allowed.
+
+    Default is `null`.
+
+  - [**`disable_default_iam_recipients`**](#attr-disable_default_iam_recipients-1): *(Optional `bool`)*<a name="attr-disable_default_iam_recipients-1"></a>
+
+    When set to true, disables default notifications sent when a threshold is exceeded. Default recipients are those with Billing Account Administrators and Billing Account Users IAM roles for the target account.
+
+    Default is `null`.
+
 #### Module Configuration
 
 - [**`module_enabled`**](#var-module_enabled): *(Optional `bool`)*<a name="var-module_enabled"></a>
@@ -71,6 +234,52 @@ See [variables.tf] and [examples/] for details and use-cases.
   Specifies whether resources in the module will be created.
 
   Default is `true`.
+
+- [**`module_timeouts`**](#var-module_timeouts): *(Optional `object(google_billing_budget)`)*<a name="var-module_timeouts"></a>
+
+  How long certain operations (per resource type) are allowed to take before being considered to have failed.
+
+  Default is `{}`.
+
+  Example:
+
+  ```hcl
+  module_timeouts = {
+    google_billing_budget = {
+      create = "4m"
+      update = "4m"
+      delete = "4m"
+    }
+  }
+  ```
+
+  The object accepts the following attributes:
+
+  - [**`google_billing_budget`**](#attr-google_billing_budget-1): *(Optional `object(timeouts)`)*<a name="attr-google_billing_budget-1"></a>
+
+    Timeout for the `google_billing_budget` resource.
+
+    Default is `null`.
+
+    The object accepts the following attributes:
+
+    - [**`create`**](#attr-create-2): *(Optional `string`)*<a name="attr-create-2"></a>
+
+      Timeout for `create` operations.
+
+      Default is `null`.
+
+    - [**`update`**](#attr-update-2): *(Optional `string`)*<a name="attr-update-2"></a>
+
+      Timeout for `update` operations.
+
+      Default is `null`.
+
+    - [**`delete`**](#attr-delete-2): *(Optional `string`)*<a name="attr-delete-2"></a>
+
+      Timeout for `delete` operations.
+
+      Default is `null`.
 
 - [**`module_depends_on`**](#var-module_depends_on): *(Optional `list(dependencies)`)*<a name="var-module_depends_on"></a>
 
@@ -100,7 +309,7 @@ The following attributes are exported in the outputs of the module:
 
 ### Terraform GCP Provider Documentation
 
--https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget
+- https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget
 
 ## Module Versioning
 
