@@ -12,7 +12,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.MINEIROS_TESTING_AWS_ACCESS_KEY_ID }}
 
 concurrency:
-  group: terraform-module-template
+  group: terraform-google-billing-budget
   cancel-in-progress: false
 
 jobs:
