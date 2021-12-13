@@ -1,16 +1,16 @@
 header {
   image = "https://raw.githubusercontent.com/mineiros-io/brand/3bffd30e8bdbbde32c143e2650b2faa55f1df3ea/mineiros-primary-logo.svg"
-  url   = "https://mineiros.io/?ref=terraform-module-template"
+  url   = "https://mineiros.io/?ref=terraform-google-billing-budget"
 
   badge "build" {
-    image = "https://github.com/mineiros-io/terraform-module-template/workflows/Tests/badge.svg"
-    url   = "https://github.com/mineiros-io/terraform-module-template/actions"
+    image = "https://github.com/mineiros-io/terraform-google-billing-budget/workflows/Tests/badge.svg"
+    url   = "https://github.com/mineiros-io/terraform-google-billing-budget/actions"
     text  = "Build Status"
   }
 
   badge "semver" {
-    image = "https://img.shields.io/github/v/tag/mineiros-io/terraform-module-template.svg?label=latest&sort=semver"
-    url   = "https://github.com/mineiros-io/terraform-module-template/releases"
+    image = "https://img.shields.io/github/v/tag/mineiros-io/terraform-google-billing-budget.svg?label=latest&sort=semver"
+    url   = "https://github.com/mineiros-io/terraform-google-billing-budget/releases"
     text  = "GitHub tag (latest SemVer)"
   }
 
@@ -20,23 +20,11 @@ header {
     text  = "Terraform Version"
   }
 
-  badge "tf-aws-provider" {
-    image = "https://img.shields.io/badge/AWS-3-F8991D.svg?logo=terraform"
-    url   = "https://github.com/terraform-providers/terraform-provider-aws/releases"
-    text  = "AWS Provider Version"
-  }
-
-  # badge "tf-gh" {
-  #   image = "https://img.shields.io/badge/GH-4-F8991D.svg?logo=terraform"
-  #   url = "https://github.com/terraform-providers/terraform-provider-github/releases"
-  #   text = "Github Provider Version"
-  # }
-
-  # badge "tf-gcp-provider" {
-  #   image = "https://img.shields.io/badge/google-4-1A73E8.svg?logo=terraform"
-  #   url   = "https://github.com/terraform-providers/terraform-provider-google/releases"
-  #   text  = "Google Provider Version"
-  # }
+   badge "tf-gcp-provider" {
+     image = "https://img.shields.io/badge/google-4-1A73E8.svg?logo=terraform"
+     url   = "https://github.com/terraform-providers/terraform-provider-google/releases"
+     text  = "Google Provider Version"
+   }
 
   badge "slack" {
     image = "https://img.shields.io/badge/slack-@mineiros--community-f32752.svg?logo=slack"
@@ -46,13 +34,17 @@ header {
 }
 
 section {
-  title   = "terraform-module-template"
+  title   = "terraform-google-billing-budget"
   toc     = true
   content = <<-END
-    A [Terraform] base module for [Amazon Web Services (AWS)][aws].
+    A [Terraform] module to manage [Google Billing Budgets](https://cloud.google.com/billing/docs/how-to/budgets) on [Google Cloud Services (GCP)](https://cloud.google.com).
+
+    A budget enables you to track your actual Google Cloud spend against your
+    planned spend. After you've set a budget amount, you set budget alert
+    threshold rules that are used to trigger notifications such as email, slack and Pub/Sub.
 
     **_This module supports Terraform version 1
-    and is compatible with the Terraform AWS Provider version 3._**
+    and is compatible with the Terraform Google Cloud Provider version 4._**
 
     This module is part of our Infrastructure as Code (IaC) framework
     that enables our users and customers to easily deploy and manage reusable,
@@ -64,12 +56,7 @@ section {
     content = <<-END
       This module implements the following Terraform resources
 
-      - `google_resource`
-      - `google_something_else`
-
-      and supports additional features of the following modules:
-
-      - [mineiros-io/something/google](https://github.com/mineiros-io/terraform-google-something)
+      - `google_billing_budget`
     END
   }
 
@@ -79,8 +66,8 @@ section {
       Most common usage of the module:
 
       ```hcl
-      module "terraform-module-template" {
-        source = "git@github.com:mineiros-io/terraform-module-template.git?ref=v0.0.1"
+      module "terraform-google-billing-budget" {
+        source = "git@github.com:mineiros-io/terraform-google-billing-budget.git?ref=v0.0.1"
       }
       ```
     END
@@ -171,20 +158,6 @@ section {
           default     = true
         }
 
-        variable "module_tags" {
-          type        = map(string)
-          description = <<-END
-            A map of tags that will be applied to all created resources that accept tags. Tags defined with 'module_tags' can be overwritten by resource-specific tags.
-          END
-          default     = {}
-          readme_example = <<-END
-            module_tags = {
-              environment = "staging"
-              team        = "platform"
-            }
-          END
-        }
-
         variable "module_depends_on" {
           type        = any
           readme_type = "list(dependencies)"
@@ -193,7 +166,7 @@ section {
           END
           readme_example = <<-END
             module_depends_on = [
-              aws_vpc.vpc
+              google_monitoring_notification_channel.notification_channel 
             ]
           END
         }
@@ -209,10 +182,6 @@ section {
       - **`module_enabled`**
 
         Whether this module is enabled.
-
-      - **`module_tags`**
-
-        The map of tags that are being applied to all created resources that accept tags.
     END
   }
 
@@ -220,21 +189,16 @@ section {
     title = "External Documentation"
 
     section {
-      title   = "AWS Documentation IAM"
+      title   = "GCP Billing Budgets Documentation"
       content = <<-END
-        - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html
-        - https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies.html
-        - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html
+        - https://cloud.google.com/billing/docs/how-to/budgets
       END
     }
 
     section {
-      title   = "Terraform AWS Provider Documentation"
+      title   = "Terraform GCP Provider Documentation"
       content = <<-END
-        - https://www.terraform.io/docs/providers/aws/r/iam_role.html
-        - https://www.terraform.io/docs/providers/aws/r/iam_role_policy.html
-        - https://www.terraform.io/docs/providers/aws/r/iam_role_policy_attachment.html
-        - https://www.terraform.io/docs/providers/aws/r/iam_instance_profile.html
+        -https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget 
       END
     }
   }
@@ -313,7 +277,7 @@ section {
 
 references {
   ref "homepage" {
-    value = "https://mineiros.io/?ref=terraform-module-template"
+    value = "https://mineiros.io/?ref=terraform-google-billing-budget"
   }
   ref "hello@mineiros.io" {
     value = " mailto:hello@mineiros.io"
@@ -324,9 +288,6 @@ references {
   ref "releases-terraform" {
     value = "https://github.com/hashicorp/terraform/releases"
   }
-  ref "releases-aws-provider" {
-    value = "https://github.com/terraform-providers/terraform-provider-aws/releases"
-  }
   ref "apache20" {
     value = "https://opensource.org/licenses/Apache-2.0"
   }
@@ -336,31 +297,31 @@ references {
   ref "terraform" {
     value = "https://www.terraform.io"
   }
-  ref "aws" {
-    value = "https://aws.amazon.com/"
+  ref "gcp" {
+    value = "https://cloud.google.com"
   }
   ref "semantic versioning (semver)" {
     value = "https://semver.org/"
   }
   ref "variables.tf" {
-    value = "https://github.com/mineiros-io/terraform-module-template/blob/main/variables.tf"
+    value = "https://github.com/mineiros-io/terraform-google-billing-budget/blob/main/variables.tf"
   }
   ref "examples/" {
-    value = "https://github.com/mineiros-io/terraform-module-template/blob/main/examples"
+    value = "https://github.com/mineiros-io/terraform-google-billing-budget/blob/main/examples"
   }
   ref "issues" {
-    value = "https://github.com/mineiros-io/terraform-module-template/issues"
+    value = "https://github.com/mineiros-io/terraform-google-billing-budget/issues"
   }
   ref "license" {
-    value = "https://github.com/mineiros-io/terraform-module-template/blob/main/LICENSE"
+    value = "https://github.com/mineiros-io/terraform-google-billing-budget/blob/main/LICENSE"
   }
   ref "makefile" {
-    value = "https://github.com/mineiros-io/terraform-module-template/blob/main/Makefile"
+    value = "https://github.com/mineiros-io/terraform-google-billing-budget/blob/main/Makefile"
   }
   ref "pull requests" {
-    value = "https://github.com/mineiros-io/terraform-module-template/pulls"
+    value = "https://github.com/mineiros-io/terraform-google-billing-budget/pulls"
   }
   ref "contribution guidelines" {
-    value = "https://github.com/mineiros-io/terraform-module-template/blob/main/CONTRIBUTING.md"
+    value = "https://github.com/mineiros-io/terraform-google-billing-budget/blob/main/CONTRIBUTING.md"
   }
 }

@@ -1,17 +1,21 @@
-[<img src="https://raw.githubusercontent.com/mineiros-io/brand/3bffd30e8bdbbde32c143e2650b2faa55f1df3ea/mineiros-primary-logo.svg" width="400"/>](https://mineiros.io/?ref=terraform-module-template)
+[<img src="https://raw.githubusercontent.com/mineiros-io/brand/3bffd30e8bdbbde32c143e2650b2faa55f1df3ea/mineiros-primary-logo.svg" width="400"/>](https://mineiros.io/?ref=terraform-google-billing-budget)
 
-[![Build Status](https://github.com/mineiros-io/terraform-module-template/workflows/Tests/badge.svg)](https://github.com/mineiros-io/terraform-module-template/actions)
-[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/mineiros-io/terraform-module-template.svg?label=latest&sort=semver)](https://github.com/mineiros-io/terraform-module-template/releases)
+[![Build Status](https://github.com/mineiros-io/terraform-google-billing-budget/workflows/Tests/badge.svg)](https://github.com/mineiros-io/terraform-google-billing-budget/actions)
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/mineiros-io/terraform-google-billing-budget.svg?label=latest&sort=semver)](https://github.com/mineiros-io/terraform-google-billing-budget/releases)
 [![Terraform Version](https://img.shields.io/badge/Terraform-1.x-623CE4.svg?logo=terraform)](https://github.com/hashicorp/terraform/releases)
-[![AWS Provider Version](https://img.shields.io/badge/AWS-3-F8991D.svg?logo=terraform)](https://github.com/terraform-providers/terraform-provider-aws/releases)
+[![Google Provider Version](https://img.shields.io/badge/google-4-1A73E8.svg?logo=terraform)](https://github.com/terraform-providers/terraform-provider-google/releases)
 [![Join Slack](https://img.shields.io/badge/slack-@mineiros--community-f32752.svg?logo=slack)](https://mineiros.io/slack)
 
-# terraform-module-template
+# terraform-google-billing-budget
 
-A [Terraform] base module for [Amazon Web Services (AWS)][aws].
+A [Terraform] module to manage [Google Billing Budgets](https://cloud.google.com/billing/docs/how-to/budgets) on [Google Cloud Services (GCP)](https://cloud.google.com).
+
+A budget enables you to track your actual Google Cloud spend against your
+planned spend. After you've set a budget amount, you set budget alert
+threshold rules that are used to trigger notifications such as email, slack and Pub/Sub.
 
 **_This module supports Terraform version 1
-and is compatible with the Terraform AWS Provider version 3._**
+and is compatible with the Terraform Google Cloud Provider version 4._**
 
 This module is part of our Infrastructure as Code (IaC) framework
 that enables our users and customers to easily deploy and manage reusable,
@@ -26,8 +30,8 @@ secure, and production-grade cloud infrastructure.
     - [Module Configuration](#module-configuration)
 - [Module Attributes Reference](#module-attributes-reference)
 - [External Documentation](#external-documentation)
-  - [AWS Documentation IAM](#aws-documentation-iam)
-  - [Terraform AWS Provider Documentation](#terraform-aws-provider-documentation)
+  - [GCP Billing Budgets Documentation](#gcp-billing-budgets-documentation)
+  - [Terraform GCP Provider Documentation](#terraform-gcp-provider-documentation)
 - [Module Versioning](#module-versioning)
   - [Backwards compatibility in `0.0.z` and `0.y.z` version](#backwards-compatibility-in-00z-and-0yz-version)
 - [About Mineiros](#about-mineiros)
@@ -40,20 +44,15 @@ secure, and production-grade cloud infrastructure.
 
 This module implements the following Terraform resources
 
-- `google_resource`
-- `google_something_else`
-
-and supports additional features of the following modules:
-
-- [mineiros-io/something/google](https://github.com/mineiros-io/terraform-google-something)
+- `google_billing_budget`
 
 ## Getting Started
 
 Most common usage of the module:
 
 ```hcl
-module "terraform-module-template" {
-  source = "git@github.com:mineiros-io/terraform-module-template.git?ref=v0.0.1"
+module "terraform-google-billing-budget" {
+  source = "git@github.com:mineiros-io/terraform-google-billing-budget.git?ref=v0.0.1"
 }
 ```
 
@@ -73,21 +72,6 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   Default is `true`.
 
-- [**`module_tags`**](#var-module_tags): *(Optional `map(string)`)*<a name="var-module_tags"></a>
-
-  A map of tags that will be applied to all created resources that accept tags. Tags defined with 'module_tags' can be overwritten by resource-specific tags.
-
-  Default is `{}`.
-
-  Example:
-
-  ```hcl
-  module_tags = {
-    environment = "staging"
-    team        = "platform"
-  }
-  ```
-
 - [**`module_depends_on`**](#var-module_depends_on): *(Optional `list(dependencies)`)*<a name="var-module_depends_on"></a>
 
   A list of dependencies. Any object can be _assigned_ to this list to define a hidden external dependency.
@@ -96,7 +80,7 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   ```hcl
   module_depends_on = [
-    aws_vpc.vpc
+    google_monitoring_notification_channel.notification_channel 
   ]
   ```
 
@@ -108,24 +92,15 @@ The following attributes are exported in the outputs of the module:
 
   Whether this module is enabled.
 
-- **`module_tags`**
-
-  The map of tags that are being applied to all created resources that accept tags.
-
 ## External Documentation
 
-### AWS Documentation IAM
+### GCP Billing Budgets Documentation
 
-- https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html
-- https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies.html
-- https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html
+- https://cloud.google.com/billing/docs/how-to/budgets
 
-### Terraform AWS Provider Documentation
+### Terraform GCP Provider Documentation
 
-- https://www.terraform.io/docs/providers/aws/r/iam_role.html
-- https://www.terraform.io/docs/providers/aws/r/iam_role_policy.html
-- https://www.terraform.io/docs/providers/aws/r/iam_role_policy_attachment.html
-- https://www.terraform.io/docs/providers/aws/r/iam_instance_profile.html
+-https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget
 
 ## Module Versioning
 
@@ -180,20 +155,19 @@ Copyright &copy; 2020-2022 [Mineiros GmbH][homepage]
 
 <!-- References -->
 
-[homepage]: https://mineiros.io/?ref=terraform-module-template
+[homepage]: https://mineiros.io/?ref=terraform-google-billing-budget
 [hello@mineiros.io]: mailto:hello@mineiros.io
 [badge-license]: https://img.shields.io/badge/license-Apache%202.0-brightgreen.svg
 [releases-terraform]: https://github.com/hashicorp/terraform/releases
-[releases-aws-provider]: https://github.com/terraform-providers/terraform-provider-aws/releases
 [apache20]: https://opensource.org/licenses/Apache-2.0
 [slack]: https://mineiros.io/slack
 [terraform]: https://www.terraform.io
-[aws]: https://aws.amazon.com/
+[gcp]: https://cloud.google.com
 [semantic versioning (semver)]: https://semver.org/
-[variables.tf]: https://github.com/mineiros-io/terraform-module-template/blob/main/variables.tf
-[examples/]: https://github.com/mineiros-io/terraform-module-template/blob/main/examples
-[issues]: https://github.com/mineiros-io/terraform-module-template/issues
-[license]: https://github.com/mineiros-io/terraform-module-template/blob/main/LICENSE
-[makefile]: https://github.com/mineiros-io/terraform-module-template/blob/main/Makefile
-[pull requests]: https://github.com/mineiros-io/terraform-module-template/pulls
-[contribution guidelines]: https://github.com/mineiros-io/terraform-module-template/blob/main/CONTRIBUTING.md
+[variables.tf]: https://github.com/mineiros-io/terraform-google-billing-budget/blob/main/variables.tf
+[examples/]: https://github.com/mineiros-io/terraform-google-billing-budget/blob/main/examples
+[issues]: https://github.com/mineiros-io/terraform-google-billing-budget/issues
+[license]: https://github.com/mineiros-io/terraform-google-billing-budget/blob/main/LICENSE
+[makefile]: https://github.com/mineiros-io/terraform-google-billing-budget/blob/main/Makefile
+[pull requests]: https://github.com/mineiros-io/terraform-google-billing-budget/pulls
+[contribution guidelines]: https://github.com/mineiros-io/terraform-google-billing-budget/blob/main/CONTRIBUTING.md

@@ -1,4 +1,4 @@
-module github.com/mineiros-io/terraform-module-template
+module github.com/mineiros-io/terraform-google-billing-budget
 
 go 1.14
 

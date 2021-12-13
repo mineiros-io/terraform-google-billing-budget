@@ -59,6 +59,13 @@ ifdef AWS_ACCESS_KEY_ID
   DOCKER_AWS_FLAGS += -e AWS_SESSION_TOKEN
 endif
 
+# If GOOGLE_CREDENTIALS is defined, we are likely running inside a GCP provider
+# module. To enable GCP authentication inside the docker container, we inject
+# the relevant environment variables (service-account key file).
+ifdef GOOGLE_CREDENTIALS
+	DOCKER_GCP_FLAGS += -e GOOGLE_CREDENTIALS
+endif
+
 # If GITHUB_OWNER is defined, we are likely running inside a GitHub provider
 # module. To enable GitHub authentication inside the docker container,
 # we inject the relevant environment variables.
@@ -87,11 +94,17 @@ test/pre-commit:
 test/unit-tests: DOCKER_FLAGS += ${DOCKER_SSH_FLAGS}
 test/unit-tests: DOCKER_FLAGS += ${DOCKER_GITHUB_FLAGS}
 test/unit-tests: DOCKER_FLAGS += ${DOCKER_AWS_FLAGS}
+test/unit-tests: DOCKER_FLAGS += ${DOCKER_GCP_FLAGS}
 test/unit-tests: DOCKER_FLAGS += -e TF_DATA_DIR=.terratest
 test/unit-tests: TEST ?= "TestUnit"
 test/unit-tests:
 	@echo "${YELLOW}[TEST] ${GREEN}Start Running Go Tests in Docker Container.${RESET}"
 	$(call go-test,./test -run $(TEST))
+
+## Generate README.md with Terradoc
+.PHONY: terradoc
+terradoc:
+	$(call quiet-command,terradoc -o README.md README.tfdoc.hcl)
 
 ## Clean up cache and temporary files
 .PHONY: clean
@@ -115,11 +128,6 @@ help:
 			} \
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
-
-## Generate README.md with Terradoc
-.PHONY: terradoc
-terradoc:
-	$(call quiet-command,terradoc -o README.md README.tfdoc.hcl)
 
 # Define helper functions
 DOCKER_FLAGS   += ${DOCKER_RUN_FLAGS}
