@@ -95,6 +95,7 @@ test/unit-tests: DOCKER_FLAGS += ${DOCKER_SSH_FLAGS}
 test/unit-tests: DOCKER_FLAGS += ${DOCKER_GITHUB_FLAGS}
 test/unit-tests: DOCKER_FLAGS += ${DOCKER_AWS_FLAGS}
 test/unit-tests: DOCKER_FLAGS += ${DOCKER_GCP_FLAGS}
+test/unit-tests: DOCKER_FLAGS += $(shell env | grep ^TF_VAR_ | cut -d = -f 1 | xargs -i printf ' -e {}')
 test/unit-tests: DOCKER_FLAGS += -e TF_DATA_DIR=.terratest
 test/unit-tests: TEST ?= "TestUnit"
 test/unit-tests:

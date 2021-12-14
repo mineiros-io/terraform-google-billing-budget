@@ -4,12 +4,11 @@ on:
   push:
     branches:
       - main
-      - master
   pull_request:
 
 env:
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.MINEIROS_TESTING_AWS_SECRET_ACCESS_KEY }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.MINEIROS_TESTING_AWS_ACCESS_KEY_ID }}
+  GOOGLE_CREDENTIALS: ${{ secrets.MINEIROS_TESTING_GCP_BILLING_ADMIN_SA_KEY_FILE }}
+  TF_VAR_BILLING_ACCOUNT: ${{ secrets.MINEIROS_TESTING_GCP_BILLING_ACCOUNT_ID }}
 
 concurrency:
   group: terraform-google-billing-budget
@@ -25,7 +24,6 @@ jobs:
 
       - name: Run pre-commit
         run: make test/pre-commit
-
   unit-tests:
     needs: pre-commit
     runs-on: ubuntu-latest
@@ -34,5 +32,5 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # - name: Run Unit Tests
-      #   run: make test/unit-tests
+      - name: Run Unit Tests
+        run: make test/unit-tests

@@ -4,23 +4,27 @@
 # The purpose is to verify no resources are created when the module is disabled.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-variable "aws_region" {
-  description = "(Optional) The AWS region in which all resources will be created."
+variable "gcp_region" {
   type        = string
-  default     = "us-east-1"
+  description = "(Required) the gcp region in which all resources will be created."
+}
+
+variable "billing_account" {
+  type        = string
+  description = "(Required) ID of the billing account to set a budget on."
 }
 
 terraform {
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 3.0"
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 4.0"
     }
   }
 }
 
-provider "aws" {
-  region = var.aws_region
+provider "google" {
+  region = var.gcp_region
 }
 
 # DO NOT RENAME MODULE NAME
@@ -30,8 +34,13 @@ module "test" {
   module_enabled = false
 
   # add all required arguments
-
-  # add all optional arguments that create additional resources
+  billing_account = var.billing_account
+  amount          = 1000
+  threshold_rules = [
+    {
+      threshold_percent = 1.0
+    },
+  ]
 }
 
 # outputs generate non-idempotent terraform plans so we disable them for now unless we need them.

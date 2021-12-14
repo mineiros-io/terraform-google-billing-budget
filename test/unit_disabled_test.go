@@ -1,6 +1,7 @@
 package test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -13,7 +14,8 @@ func TestUnitDisabled(t *testing.T) {
 	terraformOptions := &terraform.Options{
 		TerraformDir: "unit-disabled",
 		Vars: map[string]interface{}{
-			"aws_region": "us-east-1",
+			"billing_account": os.Getenv("TF_VAR_BILLING_ACCOUNT"),
+			"gcp_region":      "europe-west3",
 		},
 		Upgrade: true,
 	}
