@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Implement support for the `last_period_amount` argument.
+
+### Change
+
+- Make the `amount` variable optional.
+
 ## [0.0.1]
 
 ### Added
