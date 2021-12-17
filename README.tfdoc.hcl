@@ -108,14 +108,6 @@ section {
           END
         }
 
-        variable "amount" {
-          required    = true
-          type        = number
-          description = <<-END
-            A specified amount to use as the budget.
-          END
-        }
-
         variable "threshold_rules" {
           type        = any
           readme_type = "list(threshold_rules)"
@@ -144,8 +136,17 @@ section {
             description = <<-END
               The type of basis used to determine if spend has passed the threshold. Default value is `CURRENT_SPEND`. Possible values are `CURRENT_SPEND` and `FORECASTED_SPEND`.
             END
-         }
-       }
+          }
+        }
+
+        variable "amount" {
+          type        = number
+          description = <<-END
+            A specified amount to use as the budget.
+          END
+          default = null
+        }
+
 
         variable "currency_code" {
           type        = string
@@ -153,6 +154,14 @@ section {
             The 3-letter currency code defined in ISO 4217. If specified, it must match the currency of the billing account. For a list of currency codes, please see https://en.wikipedia.org/wiki/ISO_4217
           END
           default = null
+        }
+
+        variable "use_last_period_amount" {
+          type        = bool
+          description = <<-END
+            If set to `true`, the amount of the budget will be dynamically set and updated based on the last calendar period's spend.
+          END
+          default = false
         }
 
         variable "display_name" {

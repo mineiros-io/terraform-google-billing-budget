@@ -8,11 +8,6 @@ variable "billing_account" {
   description = "(Required) ID of the billing account to set a budget on."
 }
 
-variable "amount" {
-  type        = number
-  description = "(Optional) A specified amount to use as the budget."
-}
-
 variable "threshold_rules" {
   type = any
   # type = list(object({
@@ -28,6 +23,18 @@ variable "threshold_rules" {
 # OPTIONAL PARAMETERS
 # These variables have defaults, but may be overridden.
 # ----------------------------------------------------------------------------------------------------------------------
+
+variable "amount" {
+  type        = number
+  description = "(Optional) A specified amount to use as the budget."
+  default     = null
+}
+
+variable "use_last_period_amount" {
+  type        = bool
+  description = "(Optional) If set to `true`, the amount of the budget will be dynamically set and updated based on the last calendar period's spend."
+  default     = false
+}
 
 variable "currency_code" {
   type        = string

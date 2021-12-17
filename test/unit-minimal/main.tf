@@ -32,11 +32,11 @@ module "test" {
   source = "../.."
 
   # add only required arguments and no optional arguments
-  billing_account = var.billing_account
-  amount          = 1000
+  billing_account        = var.billing_account
+  use_last_period_amount = true
   threshold_rules = [
     {
-      threshold_percent = 1.0
+      threshold_percent = 1.2
     },
   ]
 }
