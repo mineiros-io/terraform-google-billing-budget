@@ -24,6 +24,7 @@ jobs:
 
       - name: Run pre-commit
         run: make test/pre-commit
+
   unit-tests:
     needs: pre-commit
     runs-on: ubuntu-latest
@@ -32,5 +33,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Check for Terraform file changes
+        uses: getsentry/paths-filter@v2
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: |
+            terraform:
+              - '**/*.tf'
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+
       - name: Run Unit Tests
+        if: steps.changes.outputs.terraform == 'true'
         run: make test/unit-tests
