@@ -17,6 +17,10 @@ resource "google_billing_budget" "budget" {
     }
   }
 
+
+
+
+
   amount {
     dynamic "specified_amount" {
       for_each = !var.use_last_period_amount ? [true] : []
