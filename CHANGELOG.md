@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgrade minimum supported provider version to `v4.6` since it includes a fix
+  for a critical bugs that didn't allow to update labels after the initial creation.
+  For details please see https://github.com/hashicorp/terraform-provider-google/blob/master/CHANGELOG.md#460-january-10-2021
+
 ## [0.0.2]
 
 ### Added
