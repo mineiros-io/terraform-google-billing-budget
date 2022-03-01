@@ -20,11 +20,11 @@ header {
     text  = "Terraform Version"
   }
 
-   badge "tf-gcp-provider" {
-     image = "https://img.shields.io/badge/google-4-1A73E8.svg?logo=terraform"
-     url   = "https://github.com/terraform-providers/terraform-provider-google/releases"
-     text  = "Google Provider Version"
-   }
+  badge "tf-gcp-provider" {
+    image = "https://img.shields.io/badge/google-4-1A73E8.svg?logo=terraform"
+    url   = "https://github.com/terraform-providers/terraform-provider-google/releases"
+    text  = "Google Provider Version"
+  }
 
   badge "slack" {
     image = "https://img.shields.io/badge/slack-@mineiros--community-f32752.svg?logo=slack"
@@ -67,8 +67,7 @@ section {
 
       ```hcl
       module "terraform-google-billing-budget" {
-        source  = "mineiros-io/billing-budget/google"
-        version = "0.0.1"
+        source  = "git@github.com:mineiros-io/terraform-google-billing-budget.git?ref=v0.0.3"
 
         display_name    = "example-alert"
         billing_account = "xxxxxxxx-xxxx-xxxxxxx"
@@ -109,8 +108,8 @@ section {
         }
 
         variable "threshold_rules" {
-          type        = any
-          readme_type = "list(threshold_rules)"
+          type           = any
+          readme_type    = "list(threshold_rules)"
           readme_example = <<-END
             treshold_rules = [
               {
@@ -144,7 +143,7 @@ section {
           description = <<-END
             A specified amount to use as the budget.
           END
-          default = null
+          default     = null
         }
 
 
@@ -153,7 +152,7 @@ section {
           description = <<-END
             The 3-letter currency code defined in ISO 4217. If specified, it must match the currency of the billing account. For a list of currency codes, please see https://en.wikipedia.org/wiki/ISO_4217
           END
-          default = null
+          default     = null
         }
 
         variable "use_last_period_amount" {
@@ -161,7 +160,7 @@ section {
           description = <<-END
             If set to `true`, the amount of the budget will be dynamically set and updated based on the last calendar period's spend.
           END
-          default = false
+          default     = false
         }
 
         variable "display_name" {
@@ -174,12 +173,12 @@ section {
 
 
         variable "budget_filter" {
-          type        = any
-          description = <<-END
+          type           = any
+          description    = <<-END
             Filters that define which resources are used to compute the actual spend against the budget.
           END
-          readme_type = "object(budget_filter)"
-          default     = null
+          readme_type    = "object(budget_filter)"
+          default        = null
           readme_example = <<-END
             user = {
               projects               = ["projects/xxx"]
@@ -248,8 +247,8 @@ section {
             Defines notifications that are sent on every update to the billing account's spend, regardless of the thresholds defined using threshold rules.
           END
 
-          readme_type = "object(notifications)"
-          default     = null
+          readme_type    = "object(notifications)"
+          default        = null
           readme_example = <<-END
             notifications = {
               pubsub_topic                     = "alert-notification-topic"
@@ -266,7 +265,7 @@ section {
               The name of the Cloud Pub/Sub topic where budget related messages will be published, in the form `projects/{project_id}/topics/{topic_id}`. Updates are sent at regular intervals to the topic.
             END
             default     = null
-         }
+          }
 
           attribute "schema_version" {
             type        = string
@@ -293,7 +292,7 @@ section {
           }
         }
       }
- 
+
       section {
         title = "Module Configuration"
 
@@ -306,12 +305,12 @@ section {
         }
 
         variable "module_timeouts" {
-          type        = any
-          readme_type = "object(google_billing_budget)"
-          description = <<-END
+          type           = any
+          readme_type    = "object(google_billing_budget)"
+          description    = <<-END
             How long certain operations (per resource type) are allowed to take before being considered to have failed.
           END
-          default = {}
+          default        = {}
           readme_example = <<-END
             module_timeouts = {
               google_billing_budget = {
@@ -328,14 +327,14 @@ section {
             description = <<-END
               Timeout for the `google_billing_budget` resource.
             END
-            default =  null
+            default     = null
 
             attribute "create" {
               type        = string
               description = <<-END
                 Timeout for `create` operations.
               END
-              default = null
+              default     = null
             }
 
             attribute "update" {
@@ -343,7 +342,7 @@ section {
               description = <<-END
                 Timeout for `update` operations.
               END
-              default = null
+              default     = null
             }
 
             attribute "delete" {
@@ -351,15 +350,15 @@ section {
               description = <<-END
                 Timeout for `delete` operations.
               END
-              default = null
+              default     = null
             }
           }
         }
 
         variable "module_depends_on" {
-          type        = any
-          readme_type = "list(dependencies)"
-          description = <<-END
+          type           = any
+          readme_type    = "list(dependencies)"
+          description    = <<-END
             A list of dependencies. Any object can be _assigned_ to this list to define a hidden external dependency.
           END
           readme_example = <<-END
