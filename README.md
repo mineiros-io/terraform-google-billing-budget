@@ -83,7 +83,7 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   ID of the billing account to set a budget on.
 
-- [**`threshold_rules`**](#var-threshold_rules): *(Optional `object`)*<a name="var-threshold_rules"></a>
+- [**`threshold_rules`**](#var-threshold_rules): *(Optional `list(threshold_rules)`)*<a name="var-threshold_rules"></a>
 
   Example:
 
@@ -99,7 +99,7 @@ See [variables.tf] and [examples/] for details and use-cases.
   ]
   ```
 
-  The object accepts the following attributes:
+  Each `threshold_rules` object in the list accepts the following attributes:
 
   - [**`threshold_percent`**](#attr-threshold_rules-threshold_percent): *(**Required** `number`)*<a name="attr-threshold_rules-threshold_percent"></a>
 
@@ -133,7 +133,7 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   Default is `null`.
 
-- [**`budget_filter`**](#var-budget_filter): *(Optional `object`)*<a name="var-budget_filter"></a>
+- [**`budget_filter`**](#var-budget_filter): *(Optional `object(budget_filter)`)*<a name="var-budget_filter"></a>
 
   Filters that define which resources are used to compute the actual spend against the budget.
 
@@ -154,7 +154,7 @@ See [variables.tf] and [examples/] for details and use-cases.
   }
   ```
 
-  The object accepts the following attributes:
+  The `budget_filter` object accepts the following attributes:
 
   - [**`projects`**](#attr-budget_filter-projects): *(Optional `set(string)`)*<a name="attr-budget_filter-projects"></a>
 
@@ -192,7 +192,7 @@ See [variables.tf] and [examples/] for details and use-cases.
 
     Default is `null`.
 
-- [**`notifications`**](#var-notifications): *(Optional `object`)*<a name="var-notifications"></a>
+- [**`notifications`**](#var-notifications): *(Optional `object(notifications)`)*<a name="var-notifications"></a>
 
   Defines notifications that are sent on every update to the billing account's spend, regardless of the thresholds defined using threshold rules.
 
@@ -210,7 +210,7 @@ See [variables.tf] and [examples/] for details and use-cases.
   }
   ```
 
-  The object accepts the following attributes:
+  The `notifications` object accepts the following attributes:
 
   - [**`pubsub_topic`**](#attr-notifications-pubsub_topic): *(Optional `string`)*<a name="attr-notifications-pubsub_topic"></a>
 
@@ -244,7 +244,7 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   Default is `true`.
 
-- [**`module_timeouts`**](#var-module_timeouts): *(Optional `object`)*<a name="var-module_timeouts"></a>
+- [**`module_timeouts`**](#var-module_timeouts): *(Optional `object(google_billing_budget)`)*<a name="var-module_timeouts"></a>
 
   How long certain operations (per resource type) are allowed to take before being considered to have failed.
 
@@ -262,15 +262,15 @@ See [variables.tf] and [examples/] for details and use-cases.
   }
   ```
 
-  The object accepts the following attributes:
+  The `google_billing_budget` object accepts the following attributes:
 
-  - [**`google_billing_budget`**](#attr-module_timeouts-google_billing_budget): *(Optional `object`)*<a name="attr-module_timeouts-google_billing_budget"></a>
+  - [**`google_billing_budget`**](#attr-module_timeouts-google_billing_budget): *(Optional `object(timeouts)`)*<a name="attr-module_timeouts-google_billing_budget"></a>
 
     Timeout for the `google_billing_budget` resource.
 
     Default is `null`.
 
-    The object accepts the following attributes:
+    The `timeouts` object accepts the following attributes:
 
     - [**`create`**](#attr-module_timeouts-google_billing_budget-create): *(Optional `string`)*<a name="attr-module_timeouts-google_billing_budget-create"></a>
 
@@ -290,7 +290,7 @@ See [variables.tf] and [examples/] for details and use-cases.
 
       Default is `null`.
 
-- [**`module_depends_on`**](#var-module_depends_on): *(Optional `object`)*<a name="var-module_depends_on"></a>
+- [**`module_depends_on`**](#var-module_depends_on): *(Optional `list(dependencies)`)*<a name="var-module_depends_on"></a>
 
   A list of dependencies. Any object can be _assigned_ to this list to define a hidden external dependency.
 

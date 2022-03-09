@@ -109,8 +109,7 @@ section {
         }
 
         variable "threshold_rules" {
-          type           = any
-          readme_type    = "list(threshold_rules)"
+          type           = list(threshold_rules)
           readme_example = <<-END
             treshold_rules = [
               {
@@ -174,11 +173,10 @@ section {
 
 
         variable "budget_filter" {
-          type           = any
+          type           = object(budget_filter)
           description    = <<-END
             Filters that define which resources are used to compute the actual spend against the budget.
           END
-          readme_type    = "object(budget_filter)"
           default        = null
           readme_example = <<-END
             user = {
@@ -243,12 +241,10 @@ section {
         }
 
         variable "notifications" {
-          type        = any
-          description = <<-END
+          type           = object(notifications)
+          description    = <<-END
             Defines notifications that are sent on every update to the billing account's spend, regardless of the thresholds defined using threshold rules.
           END
-
-          readme_type    = "object(notifications)"
           default        = null
           readme_example = <<-END
             notifications = {
@@ -306,8 +302,7 @@ section {
         }
 
         variable "module_timeouts" {
-          type           = any
-          readme_type    = "object(google_billing_budget)"
+          type           = object(google_billing_budget)
           description    = <<-END
             How long certain operations (per resource type) are allowed to take before being considered to have failed.
           END
@@ -323,8 +318,7 @@ section {
           END
 
           attribute "google_billing_budget" {
-            type        = any
-            readme_type = "object(timeouts)"
+            type        = object(timeouts)
             description = <<-END
               Timeout for the `google_billing_budget` resource.
             END
@@ -357,8 +351,7 @@ section {
         }
 
         variable "module_depends_on" {
-          type           = any
-          readme_type    = "list(dependencies)"
+          type           = list(dependencies)
           description    = <<-END
             A list of dependencies. Any object can be _assigned_ to this list to define a hidden external dependency.
           END
