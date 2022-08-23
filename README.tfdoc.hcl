@@ -179,7 +179,7 @@ section {
           END
           default        = null
           readme_example = <<-END
-            user = {
+            budget_filter = {
               projects               = ["projects/xxx"]
               credit_types_treatment = "INCLUDE_SPECIFIED_CREDITS"
               credit_types           = "COMMITTED_USAGE_DISCOUNT"

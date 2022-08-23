@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix `budget_filter` example in `README.md`
+
 ## [0.0.3]
 
 ### Changed
