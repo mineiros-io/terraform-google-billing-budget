@@ -32,6 +32,7 @@ secure, and production-grade cloud infrastructure.
 - [External Documentation](#external-documentation)
   - [GCP Billing Budgets Documentation](#gcp-billing-budgets-documentation)
   - [Terraform GCP Provider Documentation](#terraform-gcp-provider-documentation)
+- [Module Outputs](#module-outputs)
 - [Module Versioning](#module-versioning)
   - [Backwards compatibility in `0.0.z` and `0.y.z` version](#backwards-compatibility-in-00z-and-0yz-version)
 - [About Mineiros](#about-mineiros)
@@ -57,8 +58,15 @@ module "terraform-google-billing-budget" {
 
   display_name    = "example-alert"
   billing_account = "xxxxxxxx-xxxx-xxxxxxx"
-  amount          = 1000
-  currency_code   = "EUR"
+
+  amount = {
+    specified_amount = {
+      currency_code = "USD"
+      units         = 100
+      nanos         = 100
+    }
+  }
+
   treshold_rules = [
     {
       threshold_percent = 1.0
@@ -83,7 +91,60 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   ID of the billing account to set a budget on.
 
+- [**`amount`**](#var-amount): *(**Required** `object(amount)`)*<a name="var-amount"></a>
+
+  The budgeted amount for each usage period.
+
+  Example:
+
+  ```hcl
+  amount = {
+    specified_amount = {
+      currency_code = "USD"
+      units         = 100
+      nanos         = 100
+    }
+    #either only `specified_amount` or `last_period_amount` can be set at the same time
+    #last_period_amount = true
+  }
+  ```
+
+  The `amount` object accepts the following attributes:
+
+  - [**`specified_amount`**](#attr-amount-specified_amount): *(Optional `object(specified_amount)`)*<a name="attr-amount-specified_amount"></a>
+
+    A specified amount to use as the budget. `currency_code` is optional.
+    If specified, it must match the currency of the billing account.
+    The currencyCode is provided on output.
+
+    The `specified_amount` object accepts the following attributes:
+
+    - [**`currency_code`**](#attr-amount-specified_amount-currency_code): *(Optional `string`)*<a name="attr-amount-specified_amount-currency_code"></a>
+
+      The 3-letter currency code defined in ISO 4217.
+
+    - [**`units`**](#attr-amount-specified_amount-units): *(Optional `number`)*<a name="attr-amount-specified_amount-units"></a>
+
+      The whole units of the amount. For example if `currency_code` is "USD", then 1 unit is one US dollar.
+
+    - [**`nanos`**](#attr-amount-specified_amount-nanos): *(Optional `number`)*<a name="attr-amount-specified_amount-nanos"></a>
+
+      Number of nano (10^-9) units of the amount.
+      The value must be between -999,999,999 and +999,999,999 inclusive.
+      If units is positive, nanos must be positive or zero.
+      If units is zero, nanos can be positive, zero, or negative.
+      If units is negative, nanos must be negative or zero.
+      For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
+
+  - [**`last_period_amount`**](#attr-amount-last_period_amount): *(Optional `bool`)*<a name="attr-amount-last_period_amount"></a>
+
+    Configures a budget amount that is automatically set to 100% of last period's spend.
+    Set value to `true` to use. Do not set to `false`,
+    instead use the `specified_amount` block.
+
 - [**`threshold_rules`**](#var-threshold_rules): *(Optional `list(threshold_rules)`)*<a name="var-threshold_rules"></a>
+
+  Default is `[]`.
 
   Example:
 
@@ -109,35 +170,13 @@ See [variables.tf] and [examples/] for details and use-cases.
 
     The type of basis used to determine if spend has passed the threshold. Default value is `CURRENT_SPEND`. Possible values are `CURRENT_SPEND` and `FORECASTED_SPEND`.
 
-- [**`amount`**](#var-amount): *(Optional `number`)*<a name="var-amount"></a>
-
-  A specified amount to use as the budget.
-
-  Default is `null`.
-
-- [**`currency_code`**](#var-currency_code): *(Optional `string`)*<a name="var-currency_code"></a>
-
-  The 3-letter currency code defined in ISO 4217. If specified, it must match the currency of the billing account. For a list of currency codes, please see https://en.wikipedia.org/wiki/ISO_4217
-
-  Default is `null`.
-
-- [**`use_last_period_amount`**](#var-use_last_period_amount): *(Optional `bool`)*<a name="var-use_last_period_amount"></a>
-
-  If set to `true`, the amount of the budget will be dynamically set and updated based on the last calendar period's spend.
-
-  Default is `false`.
-
 - [**`display_name`**](#var-display_name): *(Optional `string`)*<a name="var-display_name"></a>
 
   The name of the budget that will be displayed in the GCP console. Must be <= 60 chars.
 
-  Default is `null`.
-
 - [**`budget_filter`**](#var-budget_filter): *(Optional `object(budget_filter)`)*<a name="var-budget_filter"></a>
 
   Filters that define which resources are used to compute the actual spend against the budget.
-
-  Default is `null`.
 
   Example:
 
@@ -158,9 +197,8 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   - [**`projects`**](#attr-budget_filter-projects): *(Optional `set(string)`)*<a name="attr-budget_filter-projects"></a>
 
-    A set of projects of the form `projects/{project_number}`, specifying that usage from only this set of projects should be included in the budget. If omitted, the report will include all usage for the billing account, regardless of which project the usage occurred on.
-
-    Default is `null`.
+    A set of projects of the form `projects/{project_number}`, specifying that usage from only this set of projects should be included in the budget. If omitted, the report will include all usage for the billing account,
+    regardless of which project the usage occurred on.
 
   - [**`credit_types_treatment`**](#attr-budget_filter-credit_types_treatment): *(Optional `string`)*<a name="attr-budget_filter-credit_types_treatment"></a>
 
@@ -170,33 +208,26 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   - [**`credit_types`**](#attr-budget_filter-credit_types): *(Optional `string`)*<a name="attr-budget_filter-credit_types"></a>
 
-    If `credit_types_treatment` is set to `INCLUDE_SPECIFIED_CREDITS`, this is a list of credit types to be subtracted from gross cost to determine the spend for threshold calculations. See [a list of acceptable credit type values](https://cloud.google.com/billing/docs/how-to/export-data-bigquery-tables#credits-type)
-
-    Default is `null`.
+    If `credit_types_treatment` is set to `INCLUDE_SPECIFIED_CREDITS`, this is a list of credit types to be subtracted from gross cost to determine the spend for threshold calculations. See [a list of acceptable credit type
+    values](https://cloud.google.com/billing/docs/how-to/export-data-bigquery-tables#credits-type)
 
   - [**`services`**](#attr-budget_filter-services): *(Optional `set(string)`)*<a name="attr-budget_filter-services"></a>
 
-    A set of services of the form `services/{service_id}`, specifying that usage from only this set of services should be included in the budget. If omitted, the report will include usage for all the services. For a list of available services please see: https://cloud.google.com/billing/v1/how-tos/catalog-api.
-
-    Default is `null`.
+    A set of services of the form `services/{service_id}`, specifying that usage from only this set of services should be included in the budget. If omitted, the report will include usage for all the services. For a list of
+    available services please see: https://cloud.google.com/billing/v1/how-tos/catalog-api.
 
   - [**`subaccounts`**](#attr-budget_filter-subaccounts): *(Optional `set(string)`)*<a name="attr-budget_filter-subaccounts"></a>
 
-    A set of subaccounts of the form `billingAccounts/{account_id}`, specifying that usage from only this set of subaccounts should be included in the budget. If a subaccount is set to the name of the parent account, usage from the parent account will be included. If the field is omitted, the report will include usage from the parent account and all subaccounts, if they exist.
-
-    Default is `null`.
+    A set of subaccounts of the form `billingAccounts/{account_id}`, specifying that usage from only this set of subaccounts should be included in the budget. If a subaccount is set to the name of the parent account, usage from
+    the parent account will be included. If the field is omitted, the report will include usage from the parent account and all subaccounts, if they exist.
 
   - [**`labels`**](#attr-budget_filter-labels): *(Optional `map(string)`)*<a name="attr-budget_filter-labels"></a>
 
     A single label and value pair specifying that usage from only this set of labeled resources should be included in the budget.
 
-    Default is `null`.
-
 - [**`notifications`**](#var-notifications): *(Optional `object(notifications)`)*<a name="var-notifications"></a>
 
   Defines notifications that are sent on every update to the billing account's spend, regardless of the thresholds defined using threshold rules.
-
-  Default is `null`.
 
   Example:
 
@@ -216,8 +247,6 @@ See [variables.tf] and [examples/] for details and use-cases.
 
     The name of the Cloud Pub/Sub topic where budget related messages will be published, in the form `projects/{project_id}/topics/{topic_id}`. Updates are sent at regular intervals to the topic.
 
-    Default is `null`.
-
   - [**`schema_version`**](#attr-notifications-schema_version): *(Optional `string`)*<a name="attr-notifications-schema_version"></a>
 
     The schema version of the notification. It represents the JSON schema as defined in https://cloud.google.com/billing/docs/how-to/budgets#notification_format.
@@ -228,13 +257,9 @@ See [variables.tf] and [examples/] for details and use-cases.
 
     The full resource name of a monitoring notification channel in the form `projects/{project_id}/notificationChannels/{channel_id}`. A maximum of 5 channels are allowed.
 
-    Default is `null`.
-
   - [**`disable_default_iam_recipients`**](#attr-notifications-disable_default_iam_recipients): *(Optional `bool`)*<a name="attr-notifications-disable_default_iam_recipients"></a>
 
     When set to true, disables default notifications sent when a threshold is exceeded. Default recipients are those with Billing Account Administrators and Billing Account Users IAM roles for the target account.
-
-    Default is `null`.
 
 #### Module Configuration
 
@@ -268,27 +293,19 @@ See [variables.tf] and [examples/] for details and use-cases.
 
     Timeout for the `google_billing_budget` resource.
 
-    Default is `null`.
-
     The `timeouts` object accepts the following attributes:
 
     - [**`create`**](#attr-module_timeouts-google_billing_budget-create): *(Optional `string`)*<a name="attr-module_timeouts-google_billing_budget-create"></a>
 
       Timeout for `create` operations.
 
-      Default is `null`.
-
     - [**`update`**](#attr-module_timeouts-google_billing_budget-update): *(Optional `string`)*<a name="attr-module_timeouts-google_billing_budget-update"></a>
 
       Timeout for `update` operations.
 
-      Default is `null`.
-
     - [**`delete`**](#attr-module_timeouts-google_billing_budget-delete): *(Optional `string`)*<a name="attr-module_timeouts-google_billing_budget-delete"></a>
 
       Timeout for `delete` operations.
-
-      Default is `null`.
 
 - [**`module_depends_on`**](#var-module_depends_on): *(Optional `list(dependencies)`)*<a name="var-module_depends_on"></a>
 
@@ -298,7 +315,7 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   ```hcl
   module_depends_on = [
-    google_monitoring_notification_channel.notification_channel 
+    google_monitoring_notification_channel.notification_channel
   ]
   ```
 
@@ -319,6 +336,14 @@ The following attributes are exported in the outputs of the module:
 ### Terraform GCP Provider Documentation
 
 - https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget
+
+## Module Outputs
+
+The following attributes are exported in the outputs of the module:
+
+- [**`budget`**](#output-budget): *(`object(google_billing_budget)`)*<a name="output-budget"></a>
+
+  All attributes of the created `google_billing_budget` resource.
 
 ## Module Versioning
 
