@@ -54,7 +54,7 @@ Most common usage of the module:
 ```hcl
 module "terraform-google-billing-budget" {
   source  = "mineiros-io/billing-budget/google"
-  version = "0.0.3"
+  version = "0.1.0"
 
   display_name    = "example-alert"
   billing_account = "xxxxxxxx-xxxx-xxxxxxx"
