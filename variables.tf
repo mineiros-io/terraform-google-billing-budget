@@ -8,6 +8,37 @@ variable "billing_account" {
   description = "(Required) ID of the billing account to set a budget on."
 }
 
+variable "amount" {
+  type        = any
+  description = "(Required) The budgeted amount for each usage period."
+  # type = object({
+  #   specified_amount = optional(object({
+  #     currency_code = optional(string)
+  #     units         = optional(number)
+  #     nanos         = optional(number)
+  #   }))
+  #   last_period_amount = optional(bool)
+  # })
+
+  #NOTE: try() can be removed once proper typing is available (tf 1.3), see above
+  #https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget#last_period_amount
+  validation {
+    condition     = try(var.amount.last_period_amount, null) != false
+    error_message = "`last_period_amount` cannot be false (it can be either unset or `true`)"
+  }
+
+  #The provider throws `Error: Invalid combination of arguments` if `amount {}` is empty, the error message can be confusing hence this validation
+  validation {
+    condition     = length(var.amount) > 0
+    error_message = "The argument `amount` is required, but the block is empty."
+  }
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+# These variables have defaults, but may be overridden.
+# ----------------------------------------------------------------------------------------------------------------------
+
 variable "threshold_rules" {
   type = any
   # type = list(object({
@@ -16,30 +47,8 @@ variable "threshold_rules" {
   #   # Optional) The type of basis used to determine if spend has passed the threshold. Default value is `CURRENT_SPEND`. Possible values are `CURRENT_SPEND` and `FORECASTED_SPEND`.
   #   spend_basis = optional(string)
   # }))
-  description = "(Required) Rules that trigger alerts (notifications of thresholds being crossed) when spend exceeds the specified percentages of the budget."
-}
-
-# ----------------------------------------------------------------------------------------------------------------------
-# OPTIONAL PARAMETERS
-# These variables have defaults, but may be overridden.
-# ----------------------------------------------------------------------------------------------------------------------
-
-variable "amount" {
-  type        = number
-  description = "(Optional) A specified amount to use as the budget."
-  default     = null
-}
-
-variable "use_last_period_amount" {
-  type        = bool
-  description = "(Optional) If set to `true`, the amount of the budget will be dynamically set and updated based on the last calendar period's spend."
-  default     = false
-}
-
-variable "currency_code" {
-  type        = string
-  description = "(Optional) The 3-letter currency code defined in ISO 4217. If specified, it must match the currency of the billing account. For a list of currency codes, please see https://en.wikipedia.org/wiki/ISO_4217"
-  default     = null
+  description = "(Optional) Rules that trigger alerts (notifications of thresholds being crossed) when spend exceeds the specified percentages of the budget."
+  default     = []
 }
 
 variable "display_name" {

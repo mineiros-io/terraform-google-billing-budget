@@ -19,17 +19,16 @@ resource "google_billing_budget" "budget" {
 
   amount {
     dynamic "specified_amount" {
-      for_each = !var.use_last_period_amount ? [true] : []
+      for_each = try(var.amount.specified_amount != null, false) ? [var.amount.specified_amount] : []
 
       content {
-        currency_code = var.currency_code
-        units         = var.amount
+        currency_code = try(specified_amount.value.currency_code, null)
+        units         = try(specified_amount.value.units, null)
+        nanos         = try(specified_amount.value.nanos, null)
       }
     }
 
-    #NOTE: according to the docs, this needs to be set to null if unsed.
-    # For details please see https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget#last_period_amount
-    last_period_amount = var.use_last_period_amount ? true : null
+    last_period_amount = try(var.amount.last_period_amount, null)
   }
 
   dynamic "threshold_rules" {

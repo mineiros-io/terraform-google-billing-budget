@@ -72,8 +72,15 @@ section {
 
         display_name    = "example-alert"
         billing_account = "xxxxxxxx-xxxx-xxxxxxx"
-        amount          = 1000
-        currency_code   = "EUR"
+
+        amount = {
+          specified_amount = {
+            currency_code = "USD"
+            units         = 100
+            nanos         = 100
+          }
+        }
+
         treshold_rules = [
           {
             threshold_percent = 1.0
@@ -104,12 +111,77 @@ section {
           required    = true
           type        = string
           description = <<-END
-            ID of the billing account to set a budget on. 
+            ID of the billing account to set a budget on.
           END
+        }
+
+
+        variable "amount" {
+          required       = true
+          type           = object(amount)
+          description    = <<-END
+            The budgeted amount for each usage period.
+          END
+          readme_example = <<-END
+            amount = {
+              specified_amount = {
+                currency_code = "USD"
+                units         = 100
+                nanos         = 100
+              }
+              #either only `specified_amount` or `last_period_amount` can be set at the same time
+              #last_period_amount = true
+            }
+          END
+
+          attribute "specified_amount" {
+            type        = object(specified_amount)
+            description = <<-END
+              A specified amount to use as the budget. `currency_code` is optional.
+              If specified, it must match the currency of the billing account.
+              The currencyCode is provided on output.
+            END
+
+            attribute "currency_code" {
+              type        = string
+              description = <<-END
+                 The 3-letter currency code defined in ISO 4217.
+              END
+            }
+
+            attribute "units" {
+              type        = number
+              description = <<-END
+                The whole units of the amount. For example if `currency_code` is "USD", then 1 unit is one US dollar.
+              END
+            }
+
+            attribute "nanos" {
+              type        = number
+              description = <<-END
+                Number of nano (10^-9) units of the amount.
+                The value must be between -999,999,999 and +999,999,999 inclusive.
+                If units is positive, nanos must be positive or zero.
+                If units is zero, nanos can be positive, zero, or negative.
+                If units is negative, nanos must be negative or zero.
+                For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
+              END
+            }
+          }
+
+          attribute "last_period_amount" {
+            type        = bool
+            description = <<-END
+              Configures a budget amount that is automatically set to 100% of last period's spend.
+              Set value to `true` to use. Do not set to `false`,
+              instead use the `specified_amount` block.
+            END
+          }
         }
 
         variable "threshold_rules" {
           type           = list(threshold_rules)
+          default        = []
           readme_example = <<-END
             treshold_rules = [
               {
@@ -138,37 +210,11 @@ section {
           }
         }
 
-        variable "amount" {
-          type        = number
-          description = <<-END
-            A specified amount to use as the budget.
-          END
-          default     = null
-        }
-
-
-        variable "currency_code" {
-          type        = string
-          description = <<-END
-            The 3-letter currency code defined in ISO 4217. If specified, it must match the currency of the billing account. For a list of currency codes, please see https://en.wikipedia.org/wiki/ISO_4217
-          END
-          default     = null
-        }
-
-        variable "use_last_period_amount" {
-          type        = bool
-          description = <<-END
-            If set to `true`, the amount of the budget will be dynamically set and updated based on the last calendar period's spend.
-          END
-          default     = false
-        }
-
         variable "display_name" {
           type        = string
           description = <<-END
             The name of the budget that will be displayed in the GCP console. Must be <= 60 chars.
           END
-          default     = null
         }
 
 
@@ -177,7 +223,6 @@ section {
           description    = <<-END
             Filters that define which resources are used to compute the actual spend against the budget.
           END
-          default        = null
           readme_example = <<-END
             budget_filter = {
               projects               = ["projects/xxx"]
@@ -194,9 +239,9 @@ section {
           attribute "projects" {
             type        = set(string)
             description = <<-END
-              A set of projects of the form `projects/{project_number}`, specifying that usage from only this set of projects should be included in the budget. If omitted, the report will include all usage for the billing account, regardless of which project the usage occurred on.
+              A set of projects of the form `projects/{project_number}`, specifying that usage from only this set of projects should be included in the budget. If omitted, the report will include all usage for the billing account,
+regardless of which project the usage occurred on.
             END
-            default     = null
           }
 
           attribute "credit_types_treatment" {
@@ -210,25 +255,25 @@ section {
           attribute "credit_types" {
             type        = string
             description = <<-END
-              If `credit_types_treatment` is set to `INCLUDE_SPECIFIED_CREDITS`, this is a list of credit types to be subtracted from gross cost to determine the spend for threshold calculations. See [a list of acceptable credit type values](https://cloud.google.com/billing/docs/how-to/export-data-bigquery-tables#credits-type)
+              If `credit_types_treatment` is set to `INCLUDE_SPECIFIED_CREDITS`, this is a list of credit types to be subtracted from gross cost to determine the spend for threshold calculations. See [a list of acceptable credit type
+values](https://cloud.google.com/billing/docs/how-to/export-data-bigquery-tables#credits-type)
             END
-            default     = null
           }
 
           attribute "services" {
             type        = set(string)
             description = <<-END
-              A set of services of the form `services/{service_id}`, specifying that usage from only this set of services should be included in the budget. If omitted, the report will include usage for all the services. For a list of available services please see: https://cloud.google.com/billing/v1/how-tos/catalog-api.
+              A set of services of the form `services/{service_id}`, specifying that usage from only this set of services should be included in the budget. If omitted, the report will include usage for all the services. For a list of
+available services please see: https://cloud.google.com/billing/v1/how-tos/catalog-api.
             END
-            default     = null
           }
 
           attribute "subaccounts" {
             type        = set(string)
             description = <<-END
-              A set of subaccounts of the form `billingAccounts/{account_id}`, specifying that usage from only this set of subaccounts should be included in the budget. If a subaccount is set to the name of the parent account, usage from the parent account will be included. If the field is omitted, the report will include usage from the parent account and all subaccounts, if they exist.
+              A set of subaccounts of the form `billingAccounts/{account_id}`, specifying that usage from only this set of subaccounts should be included in the budget. If a subaccount is set to the name of the parent account, usage from
+the parent account will be included. If the field is omitted, the report will include usage from the parent account and all subaccounts, if they exist.
             END
-            default     = null
           }
 
           attribute "labels" {
@@ -236,7 +281,6 @@ section {
             description = <<-END
               A single label and value pair specifying that usage from only this set of labeled resources should be included in the budget.
             END
-            default     = null
           }
         }
 
@@ -245,7 +289,6 @@ section {
           description    = <<-END
             Defines notifications that are sent on every update to the billing account's spend, regardless of the thresholds defined using threshold rules.
           END
-          default        = null
           readme_example = <<-END
             notifications = {
               pubsub_topic                     = "alert-notification-topic"
@@ -261,7 +304,6 @@ section {
             description = <<-END
               The name of the Cloud Pub/Sub topic where budget related messages will be published, in the form `projects/{project_id}/topics/{topic_id}`. Updates are sent at regular intervals to the topic.
             END
-            default     = null
           }
 
           attribute "schema_version" {
@@ -277,7 +319,6 @@ section {
             description = <<-END
               The full resource name of a monitoring notification channel in the form `projects/{project_id}/notificationChannels/{channel_id}`. A maximum of 5 channels are allowed.
             END
-            default     = null
           }
 
           attribute "disable_default_iam_recipients" {
@@ -285,7 +326,6 @@ section {
             description = <<-END
               When set to true, disables default notifications sent when a threshold is exceeded. Default recipients are those with Billing Account Administrators and Billing Account Users IAM roles for the target account.
             END
-            default     = null
           }
         }
       }
@@ -322,14 +362,12 @@ section {
             description = <<-END
               Timeout for the `google_billing_budget` resource.
             END
-            default     = null
 
             attribute "create" {
               type        = string
               description = <<-END
                 Timeout for `create` operations.
               END
-              default     = null
             }
 
             attribute "update" {
@@ -337,7 +375,6 @@ section {
               description = <<-END
                 Timeout for `update` operations.
               END
-              default     = null
             }
 
             attribute "delete" {
@@ -345,7 +382,6 @@ section {
               description = <<-END
                 Timeout for `delete` operations.
               END
-              default     = null
             }
           }
         }
@@ -357,7 +393,7 @@ section {
           END
           readme_example = <<-END
             module_depends_on = [
-              google_monitoring_notification_channel.notification_channel 
+              google_monitoring_notification_channel.notification_channel
             ]
           END
         }
@@ -389,7 +425,21 @@ section {
     section {
       title   = "Terraform GCP Provider Documentation"
       content = <<-END
-        - https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget 
+        - https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/billing_budget
+      END
+    }
+  }
+
+  section {
+    title   = "Module Outputs"
+    content = <<-END
+      The following attributes are exported in the outputs of the module:
+    END
+
+    output "budget" {
+      type        = object(google_billing_budget)
+      description = <<-END
+        All attributes of the created `google_billing_budget` resource.
       END
     }
   }
