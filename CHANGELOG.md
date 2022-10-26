@@ -14,29 +14,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change `threshold_rules` from required to optional
 - BREAKING CHANGE: Change `amount` from optional to required and to original resource structure.
 
-  ###### old format
+  #### old format
 
   ```
-  ...
   amount          = 1000
   currency_code   = "EUR"
 
   use_last_period_amount = false
-  ...
   ```
 
-  ###### new format
+  #### new format
+  
   ```
-  ...
   amount = {
     specified_amount = {
       currency_code = "EUR"
       units         = 1000
     }
   }
-  ...
   ```
+  
   or
+
   ```
   amount = {
     last_period_amount = true
