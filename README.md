@@ -67,7 +67,7 @@ module "terraform-google-billing-budget" {
     }
   }
 
-  treshold_rules = [
+  threshold_rules = [
     {
       threshold_percent = 1.0
     },
