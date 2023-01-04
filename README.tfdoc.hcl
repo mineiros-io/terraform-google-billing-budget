@@ -81,7 +81,7 @@ section {
           }
         }
 
-        treshold_rules = [
+        threshold_rules = [
           {
             threshold_percent = 1.0
           },
@@ -183,7 +183,7 @@ section {
           type           = list(threshold_rules)
           default        = []
           readme_example = <<-END
-            treshold_rules = [
+            threshold_rules = [
               {
                 threshold_percent = 1.0
               },

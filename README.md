@@ -67,7 +67,7 @@ module "terraform-google-billing-budget" {
     }
   }
 
-  treshold_rules = [
+  threshold_rules = [
     {
       threshold_percent = 1.0
     },
@@ -149,7 +149,7 @@ See [variables.tf] and [examples/] for details and use-cases.
   Example:
 
   ```hcl
-  treshold_rules = [
+  threshold_rules = [
     {
       threshold_percent = 1.0
     },
